@@ -12,6 +12,7 @@ using Microsoft.Data.SqlClient;
 using Messaging.Kafka.Infrastructure.Data.Persintence;
 using Microsoft.Extensions.Hosting;
 using Confluent.Kafka;
+using Microsoft.Extensions.Options;
 
 
 namespace Messaging.Kafka.Infrastructure.Services.Background
@@ -23,7 +24,7 @@ namespace Messaging.Kafka.Infrastructure.Services.Background
         private readonly LoggingContext _context;
         private readonly IConsumer<Null, string> _consumer;
 
-        public Worker(ILogger<Worker> logger, LoggingContext context, IConfiguration configuration)
+        public Worker(ILogger<Worker> logger, LoggingContext context, IConfiguration configuration, IOptions<AppSettings> appSettings)
         {
             _logger = logger;
             _context = context;
