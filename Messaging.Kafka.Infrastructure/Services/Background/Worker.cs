@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Data.SqlClient;
 using Messaging.Kafka.Infrastructure.Data.Persintence;
 using Microsoft.Extensions.Hosting;
+using Confluent.Kafka;
 
 
 namespace Messaging.Kafka.Infrastructure.Services.Background
@@ -20,34 +21,72 @@ namespace Messaging.Kafka.Infrastructure.Services.Background
         private readonly string _connectionString = string.Empty;
         private readonly ILogger<Worker> _logger;
         private readonly LoggingContext _context;
+        private readonly IConsumer<Null, string> _consumer;
 
         public Worker(ILogger<Worker> logger, LoggingContext context, IConfiguration configuration)
         {
             _logger = logger;
             _context = context;
             _connectionString = configuration.GetValue<string>("ConnectionStringAccessControl") ?? string.Empty;
+
+            // Configuración del consumidor de Kafka
+            var consumerConfig = new ConsumerConfig
+            {
+                BootstrapServers = "192.9.201.145:9092,192.9.201.146:9092,192.9.201.147:9092",
+                GroupId = "traffic-consumer-group",
+                AutoOffsetReset = AutoOffsetReset.Earliest
+            };
+            _consumer = new ConsumerBuilder<Null, string>(consumerConfig).Build();
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            _consumer.Subscribe("tracking.traffic.networkpktlistenertest");  // Suscribirse al topic de Kafka
+
             using (var connectionSql = new SqlConnection(_connectionString))
+            {
+                await connectionSql.OpenAsync(stoppingToken);
+
                 while (!stoppingToken.IsCancellationRequested)
                 {
                     var logMessage = $"Worker running at: {DateTimeOffset.Now}";
                     _logger.LogInformation(logMessage);
 
-                    // Insertar en la base de datos
-
-                    var objLogsEntry = new objLogsEntry
+                    try
                     {
-                        Timestamp = DateTime.Now,
+                        // Consumir mensajes de Kafka
+                        var consumeResult = _consumer.Consume(stoppingToken);
+                        var kafkaMessage = consumeResult.Message.Value;
 
-                    };
-                    _context.LogsEntry.Add(objLogsEntry);
-                    await _context.SaveChangesAsync(stoppingToken);
+                        // Registrar en la base de datos el mensaje consumido
+                        var objLogsEntry = new objLogsEntry
+                        {
+                            Timestamp = DateTime.Now,
+                            Message = kafkaMessage  // Asumiendo que objLogsEntry tiene un campo para almacenar el mensaje
+                        };
 
+                        _context.LogsEntry.Add(objLogsEntry);
+                        await _context.SaveChangesAsync(stoppingToken);
+
+                        _logger.LogInformation($"Mensaje consumido e insertado en la base de datos: {kafkaMessage}");
+                    }
+                    catch (ConsumeException e)
+                    {
+                        _logger.LogError($"Error al consumir mensaje: {e.Error.Reason}");
+                    }
+
+                    // Espera de 30 segundos antes de consumir el siguiente mensaje
                     await Task.Delay(30000, stoppingToken);
                 }
+            }
         }
+
+        public override void Dispose()
+        {
+            _consumer.Close();
+            _consumer.Dispose();
+            base.Dispose();
+        }
+
     }
 }
