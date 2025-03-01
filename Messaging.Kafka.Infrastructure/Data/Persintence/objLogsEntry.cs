@@ -10,5 +10,6 @@ namespace Messaging.Kafka.Infrastructure.Data.Persintence
     {
         public int id { get; set; }
         public DateTime Timestamp { get; set; }
+        public string ? Message { get; set; }
     }
 }
