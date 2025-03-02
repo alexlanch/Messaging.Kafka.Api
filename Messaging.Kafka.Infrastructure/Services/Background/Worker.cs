@@ -12,6 +12,8 @@ using Microsoft.Data.SqlClient;
 using Messaging.Kafka.Infrastructure.Data.Persintence;
 using Microsoft.Extensions.Hosting;
 using Confluent.Kafka;
+using Api_Sql.Modelos;
+using Microsoft.Extensions.Options;
 
 
 namespace Messaging.Kafka.Infrastructure.Services.Background
@@ -27,7 +29,7 @@ namespace Messaging.Kafka.Infrastructure.Services.Background
         {
             _logger = logger;
             _context = context;
-            _connectionString = configuration.GetValue<string>("ConnectionStringAccessControl") ?? string.Empty;
+            _connectionString = configuration.GetSection("ConnectionStrings")["ConnectionStringAccessControl"];
 
             // Configuración del consumidor de Kafka
             var consumerConfig = new ConsumerConfig
@@ -62,7 +64,7 @@ namespace Messaging.Kafka.Infrastructure.Services.Background
                         var objLogsEntry = new objLogsEntry
                         {
                             Timestamp = DateTime.Now,
-                            Message = kafkaMessage  // Asumiendo que objLogsEntry tiene un campo para almacenar el mensaje
+                            //Message = kafkaMessage  // Asumiendo que objLogsEntry tiene un campo para almacenar el mensaje
                         };
 
                         _context.LogsEntry.Add(objLogsEntry);
