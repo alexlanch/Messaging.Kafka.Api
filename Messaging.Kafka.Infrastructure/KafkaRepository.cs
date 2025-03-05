@@ -19,7 +19,7 @@ namespace Messaging.Kafka.Infrastructure.Repositories
         {
             var config = new ProducerConfig
             {
-                BootstrapServers = "192.9.201.145:9092,192.9.201.146:9092,192.9.201.147:9092",
+                BootstrapServers = "DESKTOP-2S6R7FK:9091, DESKTOP-2S6R7FK:9092, DESKTOP-2S6R7FK:9093",
                 ClientId = "Message.Kafka.Api"
             };
             producer = new ProducerBuilder<Null, string>(config).Build();
@@ -32,7 +32,7 @@ namespace Messaging.Kafka.Infrastructure.Repositories
             };
             string topicMessage = JsonConvert.SerializeObject(message, microsoftDateFormatSettings);
 
-            producer.ProduceAsync("tracking.traffic.networkpktlistenertest", new Message<Null, string> { Value = topicMessage });
+            producer.ProduceAsync("tracking.sensors.networklistenertest", new Message<Null, string> { Value = topicMessage });
             
             return true;
         }

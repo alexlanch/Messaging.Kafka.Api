@@ -24,17 +24,17 @@ namespace Messaging.Kafka.Infrastructure.Services.Background
         private readonly LoggingContext _context;
         private readonly IConsumer<Null, string> _consumer;
 
-        public Worker(ILogger<Worker> logger, LoggingContext context, IConfiguration configuration, IOptions<AppSettings> appSettings)
+        public Worker(ILogger<Worker> logger, LoggingContext context, IConfiguration configuration)
         {
             _logger = logger;
             _context = context;
-            _connectionString = configuration.GetValue<string>("ConnectionStringAccessControl") ?? string.Empty;
+            _connectionString = configuration.GetSection("ConnectionStrings")["ConnectionStringAccessControl"];
 
             // Configuración del consumidor de Kafka
             var consumerConfig = new ConsumerConfig
             {
-                BootstrapServers = "192.9.201.145:9092,192.9.201.146:9092,192.9.201.147:9092",
-                GroupId = "traffic-consumer-group",
+                BootstrapServers = "DESKTOP-2S6R7FK:9091, DESKTOP-2S6R7FK:9092, DESKTOP-2S6R7FK:9093",
+                GroupId = "sensors-group",
                 AutoOffsetReset = AutoOffsetReset.Earliest
             };
             _consumer = new ConsumerBuilder<Null, string>(consumerConfig).Build();
@@ -42,7 +42,7 @@ namespace Messaging.Kafka.Infrastructure.Services.Background
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _consumer.Subscribe("tracking.traffic.networkpktlistenertest");  // Suscribirse al topic de Kafka
+            _consumer.Subscribe("tracking.sensors.networklistenertest");  // Suscribirse al topic de Kafka
 
             using (var connectionSql = new SqlConnection(_connectionString))
             {
