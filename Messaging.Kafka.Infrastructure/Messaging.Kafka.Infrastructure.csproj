@@ -29,4 +29,8 @@
     <ProjectReference Include="..\Messaging.Kafka.Domain\Messaging.Kafka.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Services\Background\" />
+  </ItemGroup>
+
 </Project>

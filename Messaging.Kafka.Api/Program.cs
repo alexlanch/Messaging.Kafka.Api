@@ -6,7 +6,6 @@ using Microsoft.Extensions.Options;
 using Messaging.Kafka.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Messaging.Kafka.Infrastructure.Data.Persitence;
-using Messaging.Kafka.Infrastructure.Services.Background;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,12 +19,6 @@ builder.Services.AddSwaggerExtension(builder.Configuration);
 builder.Services.AddTransient<IKafkaRepository, KafkaRepository>();
 builder.Services.AddTransient<IKafkaService, KafkaService>();
 
-// Configurar DbContext
-builder.Services.AddDbContext<LoggingContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("ConnectionStringAccessControl")), ServiceLifetime.Singleton);
-
-// Configurar el servicio en segundo plano
-builder.Services.AddHostedService<Worker>();
 
 var app = builder.Build();
 
